@@ -46,6 +46,13 @@ export const TRANSLATIONS: Record<Language, any> = {
     commodity: "शेतमाल",
     price: "भाव (₹/क्विंटल)",
     trend: "बदल",
+    schemes: "शासकीय योजना",
+    calendar: "पीक नियोजन",
+    news: "कृषी बातम्या",
+    apply: "अर्ज करा",
+    read_more: "अधिक वाचा",
+    days: "दिवस",
+    stage: "टप्पा",
   },
   hi: {
     app_name: "AI कृषि मित्र",
@@ -92,6 +99,13 @@ export const TRANSLATIONS: Record<Language, any> = {
     commodity: "फसल",
     price: "भाव (₹/क्विंटल)",
     trend: "बदलाव",
+    schemes: "सरकारी योजनाएं",
+    calendar: "फसल कैलेंडर",
+    news: "कृषि समाचार",
+    apply: "आवेदन करें",
+    read_more: "और पढ़ें",
+    days: "दिन",
+    stage: "चरण",
   },
   en: {
     app_name: "AI Krushi Mitra",
@@ -138,6 +152,13 @@ export const TRANSLATIONS: Record<Language, any> = {
     commodity: "Commodity",
     price: "Price (₹/Qtl)",
     trend: "Change",
+    schemes: "Govt Schemes",
+    calendar: "Crop Calendar",
+    news: "Agri News",
+    apply: "Apply Now",
+    read_more: "Read More",
+    days: "Days",
+    stage: "Stage",
   }
 };
 

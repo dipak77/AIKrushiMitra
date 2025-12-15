@@ -11,7 +11,10 @@ export type ViewState =
   | 'SOIL' 
   | 'YIELD' 
   | 'VOICE_ASSISTANT'
-  | 'MARKET';
+  | 'MARKET'
+  | 'SCHEMES'
+  | 'CALENDAR'
+  | 'NEWS';
 
 export interface UserProfile {
   name: string;
