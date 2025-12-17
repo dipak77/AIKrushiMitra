@@ -742,6 +742,7 @@ const Weather = ({ lang, onBack }: { lang: Language, onBack: () => void }) => {
 const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProfile, onBack: () => void }) => {
   const t = TRANSLATIONS[lang];
   const [listening, setListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: '1', role: 'model', text: lang === 'mr' ? 'नमस्कार! मी तुमचा कृषी मित्र. काय मदत करू?' : 'Hello! I am Krushi Mitra. How can I help?', timestamp: new Date() }
   ]);
@@ -759,13 +760,51 @@ const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProf
     scrollToBottom();
   }, [messages]);
 
+  // Speak function
+  const speak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop previous
+      const utterance = new SpeechSynthesisUtterance(text);
+      // Use Hindi voice for Marathi as fallback if Marathi specific not available, improves accent often
+      utterance.lang = lang === 'mr' ? 'hi-IN' : 'en-US'; 
+      utterance.rate = 0.9; // Slightly slower for clarity
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Initial Greeting on Mount
+  useEffect(() => {
+    // Small timeout to ensure component is ready and browser allows audio (interaction usually required, but often works on nav)
+    const timer = setTimeout(() => {
+       const greeting = messages[0].text;
+       speak(greeting);
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
   // Mock Speech Recognition
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
        alert("Speech recognition not supported in this browser. Please type.");
        return;
     }
+    
+    // Stop speaking if user wants to talk
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+
     setListening(true);
+    // Simulate listening delay
     setTimeout(() => {
        setListening(false);
        handleSend(lang === 'mr' ? 'आज पाणी द्यावे का?' : 'Should I irrigate today?');
@@ -775,6 +814,10 @@ const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProf
   const handleSend = async (text: string) => {
     if(!text.trim()) return;
     
+    // Stop current speech
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
@@ -786,47 +829,76 @@ const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProf
     setMessages(prev => [...prev, aiMsg]);
     setProcessing(false);
 
-    // Simple TTS
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(responseText);
-      utterance.lang = lang === 'mr' ? 'hi-IN' : 'en-US'; 
-      window.speechSynthesis.speak(utterance);
-    }
+    // Speak response
+    speak(responseText);
   };
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden pb-20">
-       {/* Background */}
+       {/* Background Image */}
        <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2070&auto=format&fit=crop" 
-            alt="Farm Background" 
+            src="https://images.unsplash.com/photo-1625246333195-09d9b630dc20?q=80&w=1920&auto=format&fit=crop" 
+            alt="Lush Farm Background" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+          {/* Gradient Overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/60 backdrop-blur-[2px]"></div>
        </div>
 
-       <div className="bg-white/80 backdrop-blur-md p-4 shadow-sm flex items-center lg:hidden relative z-10 border-b border-white/20">
-         <button onClick={onBack}><ArrowLeft className="mr-4 text-gray-800" /></button>
-         <h2 className="font-bold text-xl text-gray-900">{t.voice_help}</h2>
+       {/* Header */}
+       <div className="bg-white/90 backdrop-blur-md p-4 shadow-sm flex items-center lg:hidden relative z-10 border-b border-white/20">
+         <button onClick={() => { window.speechSynthesis.cancel(); onBack(); }}><ArrowLeft className="mr-4 text-gray-800" /></button>
+         <h2 className="font-bold text-xl text-gray-900 flex items-center gap-2">
+            <Mic size={20} className="text-green-600"/> {t.voice_help}
+         </h2>
        </div>
 
-       <div className="flex-1 overflow-y-auto p-4 space-y-6 relative z-10 scrollbar-hide">
+       {/* AI Avatar Display Area */}
+       <div className="relative z-10 flex-shrink-0 flex justify-center py-6">
+          <div className={`relative w-32 h-32 rounded-full border-4 border-white/50 shadow-2xl transition-all duration-300 ${isSpeaking ? 'scale-110 shadow-green-400/50' : ''}`}>
+             <img 
+               src="https://cdn-icons-png.flaticon.com/512/4712/4712009.png" 
+               alt="AI Farmer" 
+               className="w-full h-full rounded-full object-cover bg-green-100 p-1"
+             />
+             {/* Talking Animation Rings */}
+             {isSpeaking && (
+               <>
+                 <div className="absolute inset-0 rounded-full border-4 border-green-400 opacity-60 animate-ping"></div>
+                 <div className="absolute -inset-2 rounded-full border-2 border-green-300 opacity-40 animate-pulse"></div>
+               </>
+             )}
+             {/* Online Indicator */}
+             <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                {isSpeaking ? (
+                   <div className="flex gap-0.5 h-3 items-end">
+                      <div className="w-1 bg-white animate-[bounce_1s_infinite] h-2"></div>
+                      <div className="w-1 bg-white animate-[bounce_1.2s_infinite] h-3"></div>
+                      <div className="w-1 bg-white animate-[bounce_0.8s_infinite] h-2"></div>
+                   </div>
+                ) : <div className="w-2 h-2 bg-white rounded-full"></div>}
+             </div>
+          </div>
+       </div>
+
+       {/* Chat Area */}
+       <div className="flex-1 overflow-y-auto p-4 space-y-6 relative z-10 scrollbar-hide mask-image-b">
          {messages.map(m => (
            <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
               <div className={`flex items-end gap-2 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                 {/* Avatars */}
-                 <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-white flex items-center justify-center">
-                    {m.role === 'model' 
-                      ? <img src="https://cdn-icons-png.flaticon.com/512/4712/4712009.png" alt="AI" className="w-full h-full p-1" />
-                      : <img src="https://cdn-icons-png.flaticon.com/512/206/206853.png" alt="User" className="w-full h-full" />
-                    }
-                 </div>
+                 
+                 {/* Small Avatar for Chat Bubbles */}
+                 {m.role === 'model' && (
+                   <div className="w-8 h-8 rounded-full overflow-hidden border border-white/50 shadow-sm flex-shrink-0 bg-white/90 backdrop-blur flex items-center justify-center">
+                      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712009.png" alt="AI" className="w-full h-full p-1" />
+                   </div>
+                 )}
 
-                 <div className={`p-4 rounded-2xl shadow-sm backdrop-blur-md ${
+                 <div className={`p-4 rounded-2xl shadow-lg backdrop-blur-md text-lg leading-relaxed ${
                    m.role === 'user' 
-                   ? 'bg-green-600/90 text-white rounded-br-sm shadow-green-900/10' 
-                   : 'bg-white/80 text-gray-800 rounded-bl-sm border border-white/40 shadow-sm'
+                   ? 'bg-green-600 text-white rounded-br-none shadow-green-900/30' 
+                   : 'bg-white/90 text-gray-900 rounded-bl-none border border-white/40'
                  }`}>
                     {m.text}
                  </div>
@@ -835,7 +907,7 @@ const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProf
          ))}
          {processing && (
            <div className="flex justify-start">
-             <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl rounded-bl-sm shadow-sm border border-white/40 flex gap-2 items-center ml-10">
+             <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl rounded-bl-none shadow-sm border border-white/40 flex gap-2 items-center ml-10">
                <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
                <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-75"></div>
                <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce delay-150"></div>
@@ -845,24 +917,25 @@ const VoiceAssistant = ({ lang, user, onBack }: { lang: Language, user: UserProf
          <div ref={messagesEndRef} />
        </div>
 
-       <div className="p-4 bg-white/80 backdrop-blur-md border-t border-white/20 relative z-10">
-          {listening && <div className="text-center text-red-600 font-bold animate-pulse mb-2 bg-white/50 py-1 rounded-lg backdrop-blur-sm">🎤 {t.listening}</div>}
-          <div className="flex gap-2 items-center bg-white/60 p-2 rounded-full border border-white/50 shadow-inner focus-within:border-green-500 focus-within:bg-white transition-all backdrop-blur-sm">
+       {/* Input Area */}
+       <div className="p-4 bg-white/10 backdrop-blur-xl border-t border-white/20 relative z-10">
+          {listening && <div className="text-center text-white font-bold animate-pulse mb-2 bg-black/40 py-1 rounded-full backdrop-blur-md inline-block px-4 mx-auto w-full">🎤 {t.listening}</div>}
+          <div className="flex gap-3 items-center bg-white/90 p-2 rounded-full border border-white/50 shadow-2xl focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/50 transition-all">
             <button 
               onClick={startListening}
-              className={`p-3 rounded-full text-white transition-all transform hover:scale-105 ${listening ? 'bg-red-500 shadow-lg shadow-red-200' : 'bg-green-600 shadow-lg shadow-green-200'}`}
+              className={`p-4 rounded-full text-white transition-all transform hover:scale-110 active:scale-95 ${listening ? 'bg-red-500 shadow-lg shadow-red-500/40 animate-pulse' : 'bg-green-600 shadow-lg shadow-green-600/40'}`}
             >
-              <Mic size={20} />
+              <Mic size={24} />
             </button>
             <input 
               value={inputText}
               onChange={e => setInputText(e.target.value)}
-              className="flex-1 bg-transparent px-2 outline-none text-gray-800 placeholder-gray-500"
+              className="flex-1 bg-transparent px-2 outline-none text-gray-800 placeholder-gray-500 text-lg"
               placeholder={t.ask_question}
               onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText)}
             />
-            <button onClick={() => handleSend(inputText)} className="p-2 text-green-700 hover:bg-green-100 rounded-full transition-colors">
-              <Send size={20} />
+            <button onClick={() => handleSend(inputText)} className="p-3 text-green-700 hover:bg-green-100 rounded-full transition-colors">
+              <Send size={24} />
             </button>
           </div>
        </div>
