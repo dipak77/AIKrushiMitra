@@ -9,12 +9,15 @@ export type ViewState =
   | 'DISEASE_DETECTOR' 
   | 'WEATHER' 
   | 'SOIL' 
+  | 'IRRIGATION'
   | 'YIELD' 
   | 'VOICE_ASSISTANT'
   | 'MARKET'
   | 'SCHEMES'
   | 'CALENDAR'
-  | 'NEWS';
+  | 'NEWS'
+  | 'AGRI_KNOWLEDGE'
+  | 'BLOG';
 
 export interface UserProfile {
   name: string;
@@ -24,13 +27,6 @@ export interface UserProfile {
   crop: string;
 }
 
-export interface WeatherData {
-  temp: number;
-  condition: string;
-  humidity: number;
-  forecast: Array<{day: string, temp: number, icon: string}>;
-}
-
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
@@ -38,10 +34,29 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export interface MarketItem {
+export interface BlogSection {
+  heading: string;
+  subheading?: string;
+  content: string;
+  image?: string;
+  benefits?: string[];
+}
+
+export interface FAQ {
+  question: string;
+  answer: string;
+}
+
+export interface BlogPost {
   id: string;
-  crop: string;
-  price: number;
-  change: number; // percentage
-  trend: 'up' | 'down' | 'stable';
+  title: string;
+  category: string;
+  date: string;
+  author: string;
+  image: string;
+  intro: string;
+  sections: BlogSection[];
+  conclusion: string;
+  faqs?: FAQ[];
+  relatedPosts?: string[];
 }

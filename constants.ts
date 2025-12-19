@@ -53,6 +53,18 @@ export const TRANSLATIONS: Record<Language, any> = {
     read_more: "अधिक वाचा",
     days: "दिवस",
     stage: "टप्पा",
+    agri_knowledge: "कृषी विज्ञान",
+    seasonal_planting: "हंगामी लागवड",
+    crops_info: "पिकांची माहिती",
+    kharif: "खरीप (पावसाळी)",
+    rabi: "रब्बी (हिवाळी)",
+    zaid: "उन्हाळी",
+    view_details: "सविस्तर पहा",
+    blog: "कृषी ब्लॉग",
+    read_article: "लेख वाचा",
+    trending: "ट्रेंडिंग",
+    author: "तज्ज्ञ",
+    share: "शेअर करा"
   },
   hi: {
     app_name: "AI कृषि मित्र",
@@ -106,6 +118,18 @@ export const TRANSLATIONS: Record<Language, any> = {
     read_more: "और पढ़ें",
     days: "दिन",
     stage: "चरण",
+    agri_knowledge: "कृषि विज्ञान",
+    seasonal_planting: "मौसमी बुवाई",
+    crops_info: "फसल की जानकारी",
+    kharif: "खरीफ",
+    rabi: "रबी",
+    zaid: "जायद",
+    view_details: "विवरण देखें",
+    blog: "कृषि ब्लॉग",
+    read_article: "लेख पढ़ें",
+    trending: "ट्रेंडिंग",
+    author: "विशेषज्ञ",
+    share: "साझा करें"
   },
   en: {
     app_name: "AI Krushi Mitra",
@@ -159,17 +183,17 @@ export const TRANSLATIONS: Record<Language, any> = {
     read_more: "Read More",
     days: "Days",
     stage: "Stage",
+    agri_knowledge: "Agri Science",
+    seasonal_planting: "Seasonal Planting",
+    crops_info: "Crop Encyclopedia",
+    kharif: "Kharif (Monsoon)",
+    rabi: "Rabi (Winter)",
+    zaid: "Zaid (Summer)",
+    view_details: "View Details",
+    blog: "Agri Blog",
+    read_article: "Read Article",
+    trending: "Trending",
+    author: "Expert",
+    share: "Share"
   }
-};
-
-export const MOCK_WEATHER = {
-  temp: 28,
-  condition: 'Cloudy',
-  humidity: 65,
-  forecast: [
-    { day: 'Som', temp: 29, icon: '☀️' },
-    { day: 'Man', temp: 27, icon: '☁️' },
-    { day: 'Bud', temp: 26, icon: '🌧️' },
-    { day: 'Gur', temp: 28, icon: '⛅' },
-  ]
 };
